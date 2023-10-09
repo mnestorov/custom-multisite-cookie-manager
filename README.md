@@ -45,7 +45,10 @@ Each cookie is named `custom_cookie_[BLOG_ID]`, where `[BLOG_ID]` is the ID of t
 - Add an option for encrypting cookie values for added security.
 
 ### 1.2
-- Implement the cookie import/export feature
+- Implement the cookie import/export feature.
+
+### 1.3
+- Log cookie usage, and provide reporting tools for administrators.
 
 ---
 
