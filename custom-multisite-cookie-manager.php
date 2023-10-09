@@ -34,53 +34,54 @@ function cookie_settings_page(){
         // Sanitize and update settings (assuming the settings are expected to be arrays)
         $custom_cookie_expirations = (isset($_POST['custom_cookie_expirations']) && is_array($_POST['custom_cookie_expirations'])) ? array_map('sanitize_text_field', $_POST['custom_cookie_expirations']) : array();
         update_site_option('custom_cookie_expirations', $custom_cookie_expirations);
-        $enable_encryption = isset($_POST['enable_encryption']) ? 1 : 0;
-        update_site_option('enable_encryption', $enable_encryption);
         echo '<div class="updated"><p>' . esc_html__('Settings saved.', 'custom-multisite-cookie-manager') . '</p></div>';
     }
 
     // Fetch current settings
     $custom_cookie_expirations = get_site_option('custom_cookie_expirations', '');
-    $enable_encryption = get_site_option('enable_encryption', 0);
 
     // Output form
     echo '<div class="wrap">';
     echo '<h1>' . esc_html__('Cookie Settings', 'custom-multisite-cookie-manager') . '</h1>';
     echo '<p>' . esc_html__('Current Blog ID:', 'custom-multisite-cookie-manager') . ' ' . esc_html($blog_id) . '</p>';
     echo '<p>' . esc_html__('Generated Cookie Name:', 'custom-multisite-cookie-manager') . ' ' . esc_html($cookie_name) . '</p>';
-    echo '<form method="post">';
+    
+    echo '<form method="post" enctype="multipart/form-data">';  // Note the enctype attribute for file upload
     wp_nonce_field('custom_cookie_nonce', 'custom_cookie_nonce');
     
     // Field for managing cookie expirations
     echo '<h2>' . esc_html__('Cookie Expirations', 'custom-multisite-cookie-manager') . '</h2>';
     echo '<textarea name="custom_cookie_expirations" rows="5" cols="50">' . esc_textarea(json_encode($custom_cookie_expirations, JSON_PRETTY_PRINT)) . '</textarea>';
 
-    // Encryption option
-    echo '<h2>' . esc_html__('Encryption Settings', 'custom-multisite-cookie-manager') . '</h2>';
-    echo '<label>';
-    echo '<input type="checkbox" name="enable_encryption" value="1"' . checked(1, $enable_encryption, false) . '>';
-    echo esc_html__('Enable Cookie Value Encryption', 'custom-multisite-cookie-manager');
-    echo '</label>';
-
     echo '<br>';
     echo '<input type="submit" value="' . esc_attr__('Save Settings', 'custom-multisite-cookie-manager') . '" class="button button-primary">';
+
+    // Export/Import Buttons
+    echo '<input type="submit" name="export_settings" value="' . esc_attr__('Export Settings', 'custom-multisite-cookie-manager') . '" class="button">';
+    echo '<input type="file" name="import_settings_file" accept=".json">';
+    echo '<input type="submit" name="import_settings" value="' . esc_attr__('Import Settings', 'custom-multisite-cookie-manager') . '" class="button">';
+    
     echo '</form>';
     echo '</div>';
-}
 
-// Encrypt Cookie Value
-function encrypt_cookie_value($value) {
-    $encryption_key = openssl_random_pseudo_bytes(32);
-    $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('aes-256-cbc'));
-    $encrypted = openssl_encrypt($value, 'aes-256-cbc', $encryption_key, 0, $iv);
-    return base64_encode($encrypted . '::' . $iv);
-}
+    // Handle export
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['export_settings']) && isset($_POST['custom_cookie_nonce']) && wp_verify_nonce($_POST['custom_cookie_nonce'], 'custom_cookie_nonce')) {
+        $settings_json = export_cookie_settings();
+        header('Content-Type: application/json');
+        header('Content-Disposition: attachment; filename=cookie-settings.json');
+        echo $settings_json;
+        exit;
+    }
 
-// Decrypt Cookie Value
-function decrypt_cookie_value($encrypted_value) {
-    $encryption_key = openssl_random_pseudo_bytes(32);  // This should be the same key used for encryption
-    list($encrypted_data, $iv) = explode('::', base64_decode($encrypted_value), 2);
-    return openssl_decrypt($encrypted_data, 'aes-256-cbc', $encryption_key, 0, $iv);
+    // Handle import
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['import_settings']) && isset($_FILES['import_settings_file']) && $_FILES['import_settings_file']['error'] == 0 && isset($_POST['custom_cookie_nonce']) && wp_verify_nonce($_POST['custom_cookie_nonce'], 'custom_cookie_nonce')) {
+        $json_settings = file_get_contents($_FILES['import_settings_file']['tmp_name']);
+        if (import_cookie_settings($json_settings)) {
+            echo '<div class="updated"><p>' . esc_html__('Settings imported successfully.', 'custom-multisite-cookie-manager') . '</p></div>';
+        } else {
+            echo '<div class="error"><p>' . esc_html__('Failed to import settings.', 'custom-multisite-cookie-manager') . '</p></div>';
+        }
+    }
 }
 
 // Handle Cookie Expiration
@@ -119,12 +120,6 @@ function set_custom_cookie() {
     $default_expiration = 86400;  // Example default expiration of 1 day
     $cookie_expiration = get_cookie_expiration($default_expiration);
     $cookie_name = 'custom_cookie_' . get_current_blog_id();
-    $cookie_value = 'cookie_value';
-
-    if (get_site_option('enable_encryption')) {
-        $cookie_value = encrypt_cookie_value($cookie_value);
-    }
-
-    setcookie($cookie_name, $cookie_value, time() + $cookie_expiration, "/");
+    setcookie($cookie_name, 'cookie_value', time() + $cookie_expiration, "/");
 }
 add_action('init', 'set_custom_cookie');
