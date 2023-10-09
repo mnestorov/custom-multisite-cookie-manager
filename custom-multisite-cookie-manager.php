@@ -1,7 +1,7 @@
 <?php
 /** 
  * Plugin Name: MN - Custom Multisite Cookie Manager
- * Plugin URI: https://www.smartystudio.net
+ * Plugin URI: https://github.com/mnestorov/wp-custom-multisite-cookie-manager
  * Description: Manage cookies across a multisite network.
  * Version: 1.3
  * Author: Martin Nestorov
