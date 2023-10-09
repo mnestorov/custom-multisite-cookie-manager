@@ -41,6 +41,9 @@ Each cookie is named `custom_cookie_[BLOG_ID]`, where `[BLOG_ID]` is the ID of t
 ### 1.0
 - Initial release.
 
+### 1.1
+- Add an option for encrypting cookie values for added security.
+
 ---
 
 ## License
