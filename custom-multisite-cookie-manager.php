@@ -1,12 +1,14 @@
 <?php
-/*
-Plugin Name: Custom Multisite Cookie Manager
-Description: Manage cookies across a multisite network.
-Version: 1.3
-Author: Martin Nestorov
-Author URI: smartystudio.net
-Text Domain: custom-multisite-cookie-manager
-*/
+/** 
+ * Plugin Name: MN - Custom Multisite Cookie Manager
+ * Plugin URI: https://www.smartystudio.net
+ * Description: Manage cookies across a multisite network.
+ * Version: 1.3
+ * Author: Martin Nestorov
+ * Author URI: https://github.com/mnestorov
+ * Text Domain: custom-multisite-cookie-manager
+ * Tags: wordpress, wordpress-plugin, wp, wp-plugin, wp-admin, wordpress-cookie
+ */
 
 // Function to register a new menu page in the network admin
 function register_cookie_settings_page(){
