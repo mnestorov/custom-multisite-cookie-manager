@@ -2,7 +2,7 @@
 /*
 Plugin Name: Custom Multisite Cookie Manager
 Description: Manage cookies across a multisite network.
-Version: 1.0
+Version: 1.2
 Author: Martin Nestorov
 Author URI: smartystudio.net
 Text Domain: custom-multisite-cookie-manager
