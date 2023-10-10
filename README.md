@@ -1,4 +1,4 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/wordpress/wordpress.png" width="100" alt="Laravel Logo"></a></p>
+<p align="center"><a href="https://wordpress.org" target="_blank"><img src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/wordpress/wordpress.png" width="100" alt="WordPress Logo"></a></p>
 
 # WordPress - Custom Multisite Cookie Manager
 
@@ -8,7 +8,7 @@
 
 **_Manage cookies across a WordPress multisite network with the Custom Multisite Cookie Manager plugin._**
 
-This plugin allows network administrators to manage cookie expiration settings for each site within a multisite network. It provides a network admin settings page where you can specify cookie expiration times. A unique cookie will be set for each site in the network.
+This plugin allows network administrators to manage cookie expiration settings, scan, and identify all cookies being set across the multisite network. It provides a network admin settings page where you can specify cookie expiration times, view cookie usage reports, and see a list of all unique cookies being set across the network. A unique cookie will be set for each site in the network based on the specified settings.
 
 ## Installation
 
@@ -25,6 +25,7 @@ This plugin allows network administrators to manage cookie expiration settings f
    - Under **Cookie Expirations**, enter the expiration time (in seconds) for cookies on each site. You can specify different expiration times for different sites.
 4. Click **Save Settings** to save your changes.
 5. The plugin will automatically set cookies with the specified expiration times for each site in your network.
+6. To view cookie usage reports or see a list of all unique cookies being set across the network, click on **Cookie Usage Reports** in the submenu under **Cookie Settings**.
 
 ## Frequently Asked Questions
 
@@ -35,6 +36,10 @@ Navigate to the **Network Admin -> Settings -> Cookie Settings** page and enter 
 ### How are cookies named?
 
 Each cookie is named `custom_cookie_[BLOG_ID]`, where `[BLOG_ID]` is the ID of the site within the network.
+
+### How can I view all cookies being set across the network?
+
+Navigate to the **Network Admin -> Settings -> Cookie Settings -> Cookie Usage Reports** to view a list of all unique cookies being set across the network along with the number of sites on which each cookie has been found.
 
 ## Changelog
 
