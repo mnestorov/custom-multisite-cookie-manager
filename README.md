@@ -86,6 +86,9 @@ Navigate to the **Network Admin -> Settings -> Cookie Settings -> Cookie Usage R
 ### 1.8.3
 - Minor form layout and style changes.
 
+### 1.9
+- Make the plugin accessible in the admin area of all sites in a multisite network.
+
 ---
 
 ## License
