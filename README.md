@@ -6,7 +6,7 @@
 
 ## Overview
 
-**_Manage cookies across a WordPress multisite network with the Custom Multisite Cookie Manager plugin._**
+**_Manage cookies across a WordPress multisite network with the Multisite Cookie Manager plugin._**
 
 This plugin allows network administrators to manage cookie expiration settings, scan, and identify all cookies being set across the multisite network. It provides a network admin settings page where you can specify cookie expiration times, view cookie usage reports, and see a list of all unique cookies being set across the network. A unique cookie will be set for each site in the network based on the specified settings.
 
@@ -15,7 +15,7 @@ This plugin allows network administrators to manage cookie expiration settings, 
 1. Download the plugin files to your computer.
 2. Using an FTP program, or your hosting control panel, upload the unzipped plugin folder to the `/wp-content/plugins/` directory of your WordPress multisite installation.
 3. Navigate to the **Network Admin -> Plugins** page within your WordPress multisite network.
-4. Locate **Custom Multisite Cookie Manager** in the list of available plugins and click **Network Activate**.
+4. Locate **MN - WOrdPress Multisite Cookie Manager** in the list of available plugins and click **Network Activate**.
 
 ## Usage
 
