@@ -83,6 +83,9 @@ Navigate to the **Network Admin -> Settings -> Cookie Settings -> Cookie Usage R
 ### 1.8.2
 - Minor fixes on the plugin name in to the README.md file.
 
+### 1.8.3
+- Minor form layout and style changes.
+
 ---
 
 ## License

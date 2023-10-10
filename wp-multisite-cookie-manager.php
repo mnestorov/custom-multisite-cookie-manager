@@ -3,7 +3,7 @@
  * Plugin Name: MN - WordPress Multisite Cookie Manager
  * Plugin URI: https://github.com/mnestorov/wp-multisite-cookie-manager
  * Description: Manage cookies across a multisite network.
- * Version: 1.8.1
+ * Version: 1.8.3
  * Author: Martin Nestorov
  * Author URI: https://github.com/mnestorov
  * Text Domain: mn-wordpress-multisite-cookie-manager
@@ -81,18 +81,33 @@ function mn_cookie_settings_page(){
 
     // Output form for managing cookie settings
     echo '<div class="wrap">';
-    echo '<h1>' . esc_html__('Cookie Settings', 'mn-wordpress-multisite-cookie-manager') . '</h1>';
-    echo '<p>' . esc_html__('Current Blog ID:', 'mn-wordpress-multisite-cookie-manager') . ' ' . esc_html($blog_id) . '</p>';
-    echo '<p>' . esc_html__('Generated Cookie Name:', 'mn-wordpress-multisite-cookie-manager') . ' ' . esc_html($cookie_name) . '</p>';
     echo '<form method="post" enctype="multipart/form-data">';
     wp_nonce_field('custom_cookie_nonce', 'custom_cookie_nonce');
-    echo '<h2>' . esc_html__('Cookie Expirations', 'mn-wordpress-multisite-cookie-manager') . '</h2>';
-    echo '<textarea name="custom_cookie_expirations" rows="5" cols="50">' . esc_textarea(json_encode($custom_cookie_expirations, JSON_PRETTY_PRINT)) . '</textarea>';
-    echo '<br>';
-    echo '<input type="submit" value="' . esc_attr__('Save Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button button-primary">';
-    echo '<input type="submit" name="export_settings" value="' . esc_attr__('Export Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button">';
+    
+    echo '<h1 style="margin-right:10px">' . esc_html__('Cookie Settings', 'mn-wordpress-multisite-cookie-manager') . '</h1>';
+    echo '<div style="padding:5px; background-color:#e2f3eb; border:1px solid #b7e1cd; border-radius:3px;">';
+	echo '<input type="submit" name="export_settings" value="' . esc_attr__('Export Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="page-title-action" style="margin-top:5px;">';
+	echo '<input type="submit" name="import_settings" value="' . esc_attr__('Import Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="page-title-action" style="margin-top:5px; margin-right:10px">';
     echo '<input type="file" name="import_settings_file" accept=".json">';
-    echo '<input type="submit" name="import_settings" value="' . esc_attr__('Import Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button">';
+	echo '</div>';
+
+    echo '<table class="form-table" role="presentation"><tbody><tr>';
+	echo '<th scope="row"><label>' . esc_html__('Current Blog ID:', 'mn-wordpress-multisite-cookie-manager') . '</label></th>';
+	echo '<td><input type="text" class="regular-text" value="' . esc_html($blog_id) . '" disabled></td>';
+	echo '</tr><tr>';
+    echo '<th scope="row"><label>' . esc_html__('Generated Cookie Name:', 'mn-wordpress-multisite-cookie-manager') . '</label></th>';
+	echo '<td><input type="text" class="regular-text" value="'. esc_html($cookie_name) . '" disabled></td>';
+    echo '</tr></tbody></table>';
+
+    echo '<table class="form-table" role="presentation"><tbody><tr>';
+    echo '<th scope="row"><label>' . esc_html__('Cookie Expirations:', 'mn-wordpress-multisite-cookie-manager') . '</label></th>';
+    echo '<td><textarea name="custom_cookie_expirations" rows="5" cols="50">' . esc_textarea(json_encode($custom_cookie_expirations, JSON_PRETTY_PRINT)) . '</textarea></td>';
+    echo '</tr></tbody></table>';
+    echo '<br>';
+    echo '<div class="tablenav bottom"><div class="alignleft actions bulkactions">';
+    echo '<input type="submit" value="' . esc_attr__('Save Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button button-primary">';
+    echo '<br class="clear">';
+    echo '</div></div>';
     echo '</form>';
     echo '</div>';
 
