@@ -3,7 +3,7 @@
  * Plugin Name: MN - Custom Multisite Cookie Manager
  * Plugin URI: https://github.com/mnestorov/wp-custom-multisite-cookie-manager
  * Description: Manage cookies across a multisite network.
- * Version: 1.6
+ * Version: 1.7
  * Author: Martin Nestorov
  * Author URI: https://github.com/mnestorov
  * Text Domain: custom-multisite-cookie-manager
@@ -150,18 +150,29 @@ register_activation_hook(__FILE__, 'mn_create_cookie_usage_table');
 
 // Function to log cookie usage on page load
 function mn_log_cookie_usage() {
-    $cookie_log_entry = array(
-        'blog_id' => get_current_blog_id(),
-        'cookie_name' => 'custom_cookie_' . get_current_blog_id(),
-        'cookie_value' => $_COOKIE['custom_cookie_' . get_current_blog_id()],
-        'timestamp' => current_time('mysql')
-    );
-    $log_entries = get_transient('cookie_usage_log_entries');
-    if (!$log_entries) {
-        $log_entries = array();
+    $blog_id = get_current_blog_id();
+    global $wpdb;
+    $table_name = $wpdb->base_prefix . 'cookie_usage';
+
+    foreach ($_COOKIE as $cookie_name => $cookie_value) {
+        $cookie_log_entry = array(
+            'blog_id' => $blog_id,
+            'cookie_name' => $cookie_name,
+            'cookie_value' => $cookie_value,
+            'timestamp' => current_time('mysql')
+        );
+
+        // Check if the cookie entry already exists in the database to prevent duplicates
+        $existing_entry = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE blog_id = %d AND cookie_name = %s",
+            $blog_id,
+            $cookie_name
+        ));
+
+        if (null === $existing_entry) {
+            $wpdb->insert($table_name, $cookie_log_entry);
+        }
     }
-    $log_entries[] = $cookie_log_entry;
-    set_transient('cookie_usage_log_entries', $log_entries, HOUR_IN_SECONDS);
 }
 add_action('init', 'mn_log_cookie_usage');
 
@@ -205,23 +216,24 @@ function mn_register_cookie_reporting_page(){
 add_action('network_admin_menu', 'mn_register_cookie_reporting_page');
 
 // Function to display cookie usage reports
-function mn_cookie_reporting_page(){
+function mn_cookie_reporting_page() {
     global $wpdb;
     $table_name = $wpdb->base_prefix . 'cookie_usage';
-    $results = $wpdb->get_results("SELECT * FROM $table_name", OBJECT);
+    $results = $wpdb->get_results("SELECT cookie_name, COUNT(DISTINCT blog_id) as blog_count FROM $table_name GROUP BY cookie_name", OBJECT);
+
     echo '<div class="wrap">';
     echo '<h1>Cookie Usage Reports</h1>';
     echo '<table class="wp-list-table widefat fixed striped">';
-    echo '<thead><tr><th>Blog ID</th><th>Cookie Name</th><th>Cookie Value</th><th>Timestamp</th></tr></thead>';
+    echo '<thead><tr><th>Cookie Name</th><th>Number of Blogs</th></tr></thead>';
     echo '<tbody>';
+    
     foreach ($results as $row) {
         echo '<tr>';
-        echo '<td>' . esc_html($row->blog_id) . '</td>';
         echo '<td>' . esc_html($row->cookie_name) . '</td>';
-        echo '<td>' . esc_html($row->cookie_value) . '</td>';
-        echo '<td>' . esc_html($row->timestamp) . '</td>';
+        echo '<td>' . esc_html($row->blog_count) . '</td>';
         echo '</tr>';
     }
+    
     echo '</tbody>';
     echo '</table>';
     echo '</div>';
