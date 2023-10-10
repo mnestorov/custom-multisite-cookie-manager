@@ -10,6 +10,17 @@
  * Tags: wordpress, wordpress-plugin, wp, wp-plugin, wp-admin, wordpress-cookie
  */
 
+// Generate the cookie name
+function get_unique_cookie_name() {
+    // Get the current blog ID
+    $blog_id = get_current_blog_id();
+
+    // Create a unique cookie name for this site
+    $cookie_name = 'custom_cookie_' . $blog_id;
+
+    return $cookie_name;
+}
+
 // Function to register a new menu page in the network admin
 function register_cookie_settings_page(){
     add_menu_page(
@@ -26,11 +37,8 @@ add_action('network_admin_menu', 'register_cookie_settings_page');
 
 // Function to display the cookie settings page
 function cookie_settings_page(){
-    // Get the current blog ID
-    $blog_id = get_current_blog_id();
-
-    // Create a unique cookie name for this site
-    $cookie_name = 'custom_cookie_' . $blog_id;
+    // Get the unique cookie name
+    $cookie_name = get_unique_cookie_name();
 
     // Handle form submission for updating cookie settings
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['custom_cookie_nonce']) && wp_verify_nonce($_POST['custom_cookie_nonce'], 'custom_cookie_nonce')) {
@@ -107,7 +115,7 @@ function get_cookie_expiration($group, $default_expiration) {
 function set_custom_cookie() {
     $default_expiration = 86400;  // Example default expiration of 1 day
     $cookie_expiration = get_cookie_expiration($default_expiration);
-    $cookie_name = 'custom_cookie_' . get_current_blog_id();
+    $cookie_name = get_unique_cookie_name(); // Get the unique cookie name
     setcookie($cookie_name, 'cookie_value', time() + $cookie_expiration, "/");
 }
 add_action('init', 'set_custom_cookie');
