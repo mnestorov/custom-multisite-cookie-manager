@@ -67,6 +67,9 @@ Navigate to the **Network Admin -> Settings -> Cookie Settings -> Cookie Usage R
 ### 1.7
 - Implement the feature to automatically scan and identify cookies being set on the websites within the multisite network.
 
+### 1.7.1
+- Resolve the PHP Fatal error, bug fixes.
+
 ---
 
 ## License
