@@ -54,19 +54,22 @@ function mn_register_cookie_settings_page(){
     add_menu_page(
         esc_html__('Cookie Settings', 'mn-wordpress-multisite-cookie-manager'),
         esc_html__('Cookie Settings', 'mn-wordpress-multisite-cookie-manager'),
-        'manage_network_options',
+        'manage_options',
         'cookie-settings',
         'mn_cookie_settings_page',
         '',
         99
     );
 }
-add_action('network_admin_menu', 'mn_register_cookie_settings_page');
+add_action('admin_menu', 'mn_register_cookie_settings_page');
 
 // Function to display the cookie settings page
 function mn_cookie_settings_page(){
     // Get the unique cookie name
     $cookie_name = mn_get_unique_cookie_name();
+
+    // Get the current blog ID
+    $blog_id = get_current_blog_id();
 
     // Handle form submission for updating cookie settings
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['custom_cookie_nonce']) && wp_verify_nonce($_POST['custom_cookie_nonce'], 'custom_cookie_nonce')) {
@@ -157,9 +160,20 @@ function mn_get_cookie_expiration($default_expiration) {
 // Function to set a custom cookie on page load
 function mn_set_custom_cookie() {
     $default_expiration = 86400;  // Example default expiration of 1 day
-    $cookie_expiration = mn_get_cookie_expiration($default_expiration);
-    $cookie_name = mn_get_unique_cookie_name(); // Get the unique cookie name
-    setcookie($cookie_name, 'cookie_value', time() + $cookie_expiration, "/");
+
+    // Get all sites
+    $sites = get_sites();
+
+    // Loop through each site
+    foreach ( $sites as $site ) {
+        switch_to_blog( $site->blog_id );
+
+        $cookie_expiration = mn_get_cookie_expiration($default_expiration);
+        $cookie_name = mn_get_unique_cookie_name(); // Get the unique cookie name
+        setcookie($cookie_name, 'cookie_value', time() + $cookie_expiration, "/");
+
+        restore_current_blog();  // Switch back to the original blog
+    }
 }
 add_action('init', 'mn_set_custom_cookie');
 
@@ -248,12 +262,12 @@ function mn_register_cookie_reporting_page(){
         'cookie-settings',
         esc_html__('Cookie Usage Reports', 'mn-wordpress-multisite-cookie-manager'),
         esc_html__('Cookie Usage Reports', 'mn-wordpress-multisite-cookie-manager'),
-        'manage_network_options',
+        'manage_options',
         'cookie-reports',
         'mn_cookie_reporting_page'
     );
 }
-add_action('network_admin_menu', 'mn_register_cookie_reporting_page');
+add_action('admin_menu', 'mn_register_cookie_reporting_page');
 
 // Function to display cookie usage reports
 function mn_cookie_reporting_page() {
