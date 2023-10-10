@@ -3,7 +3,7 @@
  * Plugin Name: MN - Custom Multisite Cookie Manager
  * Plugin URI: https://github.com/mnestorov/wp-custom-multisite-cookie-manager
  * Description: Manage cookies across a multisite network.
- * Version: 1.5
+ * Version: 1.6
  * Author: Martin Nestorov
  * Author URI: https://github.com/mnestorov
  * Text Domain: custom-multisite-cookie-manager
@@ -11,17 +11,17 @@
  */
 
 // Register the uninstall hook
-register_uninstall_hook(__FILE__, 'custom_cookie_manager_uninstall');
+register_uninstall_hook(__FILE__, 'mn_custom_cookie_manager_uninstall');
 
 // Remove the `cookie_usage` table from the database
-function custom_cookie_manager_uninstall() {
+function mn_custom_cookie_manager_uninstall() {
     global $wpdb;
     $table_name = $wpdb->base_prefix . 'cookie_usage';
     $wpdb->query("DROP TABLE IF EXISTS $table_name");
 }
 
 // Generate the cookie name
-function get_unique_cookie_name() {
+function mn_get_unique_cookie_name() {
     // Get the current blog ID
     $blog_id = get_current_blog_id();
 
@@ -32,23 +32,23 @@ function get_unique_cookie_name() {
 }
 
 // Function to register a new menu page in the network admin
-function register_cookie_settings_page(){
+function mn_register_cookie_settings_page(){
     add_menu_page(
         esc_html__('Cookie Settings', 'custom-multisite-cookie-manager'),
         esc_html__('Cookie Settings', 'custom-multisite-cookie-manager'),
         'manage_network_options',
         'cookie-settings',
-        'cookie_settings_page',
+        'mn_cookie_settings_page',
         '',
         99
     );
 }
-add_action('network_admin_menu', 'register_cookie_settings_page');
+add_action('network_admin_menu', 'mn_register_cookie_settings_page');
 
 // Function to display the cookie settings page
-function cookie_settings_page(){
+function mn_cookie_settings_page(){
     // Get the unique cookie name
-    $cookie_name = get_unique_cookie_name();
+    $cookie_name = mn_get_unique_cookie_name();
 
     // Handle form submission for updating cookie settings
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['custom_cookie_nonce']) && wp_verify_nonce($_POST['custom_cookie_nonce'], 'custom_cookie_nonce')) {
@@ -80,7 +80,7 @@ function cookie_settings_page(){
 
     // Handle export of cookie settings
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['export_settings']) && isset($_POST['custom_cookie_nonce']) && wp_verify_nonce($_POST['custom_cookie_nonce'], 'custom_cookie_nonce')) {
-        $settings_json = export_cookie_settings();
+        $settings_json = mn_export_cookie_settings();
         header('Content-Type: application/json');
         header('Content-Disposition: attachment; filename=cookie-settings.json');
         echo $settings_json;
@@ -90,7 +90,7 @@ function cookie_settings_page(){
     // Handle import of cookie settings
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['import_settings']) && isset($_FILES['import_settings_file']) && $_FILES['import_settings_file']['error'] == 0 && isset($_POST['custom_cookie_nonce']) && wp_verify_nonce($_POST['custom_cookie_nonce'], 'custom_cookie_nonce')) {
         $json_settings = file_get_contents($_FILES['import_settings_file']['tmp_name']);
-        if (import_cookie_settings($json_settings)) {
+        if (mn_import_cookie_settings($json_settings)) {
             echo '<div class="updated"><p>' . esc_html__('Settings imported successfully.', 'custom-multisite-cookie-manager') . '</p></div>';
         } else {
             echo '<div class="error"><p>' . esc_html__('Failed to import settings.', 'custom-multisite-cookie-manager') . '</p></div>';
@@ -99,7 +99,7 @@ function cookie_settings_page(){
 }
 
 // Function to handle the logic for cookie expiration based on user roles and login status
-function get_cookie_expiration($group, $default_expiration) {
+function mn_get_cookie_expiration($group, $default_expiration) {
     $cookie_expirations = get_site_option('custom_cookie_expirations', array());
     $expiration = $default_expiration;
     
@@ -122,16 +122,16 @@ function get_cookie_expiration($group, $default_expiration) {
 }
 
 // Function to set a custom cookie on page load
-function set_custom_cookie() {
+function mn_set_custom_cookie() {
     $default_expiration = 86400;  // Example default expiration of 1 day
-    $cookie_expiration = get_cookie_expiration($default_expiration);
-    $cookie_name = get_unique_cookie_name(); // Get the unique cookie name
+    $cookie_expiration = mn_get_cookie_expiration($default_expiration);
+    $cookie_name = mn_get_unique_cookie_name(); // Get the unique cookie name
     setcookie($cookie_name, 'cookie_value', time() + $cookie_expiration, "/");
 }
-add_action('init', 'set_custom_cookie');
+add_action('init', 'mn_set_custom_cookie');
 
 // Function to create a new database table for logging cookie usage on plugin activation
-function create_cookie_usage_table() {
+function mn_create_cookie_usage_table() {
     global $wpdb;
     $table_name = $wpdb->base_prefix . 'cookie_usage';
     $charset_collate = $wpdb->get_charset_collate();
@@ -146,10 +146,10 @@ function create_cookie_usage_table() {
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql);
 }
-register_activation_hook(__FILE__, 'create_cookie_usage_table');
+register_activation_hook(__FILE__, 'mn_create_cookie_usage_table');
 
 // Function to log cookie usage on page load
-function log_cookie_usage() {
+function mn_log_cookie_usage() {
     $cookie_log_entry = array(
         'blog_id' => get_current_blog_id(),
         'cookie_name' => 'custom_cookie_' . get_current_blog_id(),
@@ -163,10 +163,10 @@ function log_cookie_usage() {
     $log_entries[] = $cookie_log_entry;
     set_transient('cookie_usage_log_entries', $log_entries, HOUR_IN_SECONDS);
 }
-add_action('init', 'log_cookie_usage');
+add_action('init', 'mn_log_cookie_usage');
 
 // Function to write log entries from transient to database hourly
-function write_cookie_usage_log_entries() {
+function mn_write_cookie_usage_log_entries() {
     global $wpdb;
     $table_name = $wpdb->base_prefix . 'cookie_usage';
     $log_entries = get_transient('cookie_usage_log_entries');
@@ -184,7 +184,7 @@ function write_cookie_usage_log_entries() {
         }
     }
 }
-add_action('write_cookie_usage_log_entries_hook', 'write_cookie_usage_log_entries');
+add_action('write_cookie_usage_log_entries_hook', 'mn_write_cookie_usage_log_entries');
 
 // Schedule hourly event to write log entries to database
 if (!wp_next_scheduled('write_cookie_usage_log_entries_hook')) {
@@ -192,20 +192,20 @@ if (!wp_next_scheduled('write_cookie_usage_log_entries_hook')) {
 }
 
 // Function to register a submenu page for cookie usage reports
-function register_cookie_reporting_page(){
+function mn_register_cookie_reporting_page(){
     add_submenu_page(
         'cookie-settings',
         esc_html__('Cookie Usage Reports', 'custom-multisite-cookie-manager'),
         esc_html__('Cookie Usage Reports', 'custom-multisite-cookie-manager'),
         'manage_network_options',
         'cookie-reports',
-        'cookie_reporting_page'
+        'mn_cookie_reporting_page'
     );
 }
-add_action('network_admin_menu', 'register_cookie_reporting_page');
+add_action('network_admin_menu', 'mn_register_cookie_reporting_page');
 
 // Function to display cookie usage reports
-function cookie_reporting_page(){
+function mn_cookie_reporting_page(){
     global $wpdb;
     $table_name = $wpdb->base_prefix . 'cookie_usage';
     $results = $wpdb->get_results("SELECT * FROM $table_name", OBJECT);
@@ -228,13 +228,13 @@ function cookie_reporting_page(){
 }
 
 // Function to export cookie settings to a JSON file
-function export_cookie_settings() {
+function mn_export_cookie_settings() {
     $custom_cookie_expirations = get_site_option('custom_cookie_expirations', '');
     return json_encode($custom_cookie_expirations, JSON_PRETTY_PRINT);
 }
 
 // Function to import cookie settings from a JSON file
-function import_cookie_settings($json_settings) {
+function mn_import_cookie_settings($json_settings) {
     $settings_array = json_decode($json_settings, true);
     if (json_last_error() == JSON_ERROR_NONE && is_array($settings_array)) {
         update_site_option('custom_cookie_expirations', $settings_array);
