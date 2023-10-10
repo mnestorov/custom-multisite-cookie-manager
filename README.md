@@ -54,7 +54,11 @@ Each cookie is named `custom_cookie_[BLOG_ID]`, where `[BLOG_ID]` is the ID of t
 - Reduce the code duplication and make the code more maintainable.
 
 ### 1.5
-- Clean up and remove any database tables on uninstall that were created by the plugin. 
+- Clean up and remove any database tables on uninstall that were created by the plugin.
+
+### 1.6
+- Added 'mn_' prefix for all custom function names.
+
 ---
 
 ## License
