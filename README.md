@@ -77,6 +77,9 @@ Navigate to the **Network Admin -> Settings -> Cookie Settings -> Cookie Usage R
    - Error handling has been added to the `mn_get_cookie_expiration`, `mn_create_cookie_usage_table`, and `mn_log_cookie_usage` functions to log database errors and other issues to the error log.
    - In the `mn_log_cookie_usage` function, a check has been added on the result of the `$wpdb->insert()` method call to log any errors that occur during the database insert operation.
 
+### 1.8.1
+- Rename of the main plugin file.
+
 ---
 
 ## License
