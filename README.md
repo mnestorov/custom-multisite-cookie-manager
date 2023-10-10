@@ -59,6 +59,9 @@ Each cookie is named `custom_cookie_[BLOG_ID]`, where `[BLOG_ID]` is the ID of t
 ### 1.6
 - Added 'mn_' prefix for all custom function names.
 
+### 1.7
+- Implement the feature to automatically scan and identify cookies being set on the websites within the multisite network.
+
 ---
 
 ## License
