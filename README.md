@@ -50,6 +50,11 @@ Each cookie is named `custom_cookie_[BLOG_ID]`, where `[BLOG_ID]` is the ID of t
 ### 1.3
 - Log cookie usage, and provide reporting tools for administrators.
 
+### 1.4
+- Reduce the code duplication and make the code more maintainable.
+
+### 1.5
+- Clean up and remove any database tables on uninstall that were created by the plugin. 
 ---
 
 ## License
