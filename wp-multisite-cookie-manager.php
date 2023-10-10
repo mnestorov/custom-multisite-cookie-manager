@@ -80,7 +80,7 @@ function mn_cookie_settings_page(){
         // Decode the JSON data from the textarea
         $custom_cookie_expirations = json_decode(stripslashes($_POST['custom_cookie_expirations']), true);
         if (json_last_error() == JSON_ERROR_NONE && is_array($custom_cookie_expirations)) {
-            update_site_option('custom_cookie_expirations', $custom_cookie_expirations);
+            update_blog_option($blog_id, 'custom_cookie_expirations', $custom_cookie_expirations);
             echo '<div class="updated"><p>' . esc_html__('Settings saved.', 'mn-wordpress-multisite-cookie-manager') . '</p></div>';
         } else {
             echo '<div class="error"><p>' . esc_html__('Invalid JSON data.', 'mn-wordpress-multisite-cookie-manager') . '</p></div>';
@@ -88,7 +88,7 @@ function mn_cookie_settings_page(){
     }
 
     // Fetch current settings
-    $custom_cookie_expirations = get_site_option('custom_cookie_expirations', array());
+    $custom_cookie_expirations = get_blog_option($blog_id, 'custom_cookie_expirations', array());
 
     // Output form for managing cookie settings
     echo '<div class="wrap">';
@@ -145,7 +145,8 @@ function mn_cookie_settings_page(){
 
 // Function to handle the logic for cookie expiration based on user roles and login status
 function mn_get_cookie_expiration($default_expiration) {
-    $cookie_expirations = get_site_option('custom_cookie_expirations', array());
+    $blog_id = get_current_blog_id();
+    $cookie_expirations = get_blog_option($blog_id, 'custom_cookie_expirations', array());
     $expiration = $default_expiration;
     
     if ($cookie_expirations) {
@@ -169,20 +170,9 @@ function mn_get_cookie_expiration($default_expiration) {
 // Function to set a custom cookie on page load
 function mn_set_custom_cookie() {
     $default_expiration = 86400;  // Example default expiration of 1 day
-
-    // Get all sites
-    $sites = get_sites();
-
-    // Loop through each site
-    foreach ( $sites as $site ) {
-        switch_to_blog( $site->blog_id );
-
-        $cookie_expiration = mn_get_cookie_expiration($default_expiration);
-        $cookie_name = mn_get_unique_cookie_name(); // Get the unique cookie name
-        setcookie($cookie_name, 'cookie_value', time() + $cookie_expiration, "/");
-
-        restore_current_blog();  // Switch back to the original blog
-    }
+    $cookie_expiration = mn_get_cookie_expiration($default_expiration);
+    $cookie_name = mn_get_unique_cookie_name(); // Get the unique cookie name
+    setcookie($cookie_name, 'cookie_value', time() + $cookie_expiration, "/");
 }
 add_action('init', 'mn_set_custom_cookie');
 
