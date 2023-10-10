@@ -65,6 +65,10 @@ add_action('admin_menu', 'mn_register_cookie_settings_page');
 
 // Function to display the cookie settings page
 function mn_cookie_settings_page(){
+    // For debug
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+
     // Get the unique cookie name
     $cookie_name = mn_get_unique_cookie_name();
 
@@ -73,14 +77,18 @@ function mn_cookie_settings_page(){
 
     // Handle form submission for updating cookie settings
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['custom_cookie_nonce']) && wp_verify_nonce($_POST['custom_cookie_nonce'], 'custom_cookie_nonce')) {
-        // Sanitize and update settings
-        $custom_cookie_expirations = (isset($_POST['custom_cookie_expirations']) && is_array($_POST['custom_cookie_expirations'])) ? array_map('sanitize_text_field', $_POST['custom_cookie_expirations']) : array();
-        update_site_option('custom_cookie_expirations', $custom_cookie_expirations);
-        echo '<div class="updated"><p>' . esc_html__('Settings saved.', 'mn-wordpress-multisite-cookie-manager') . '</p></div>';
+        // Decode the JSON data from the textarea
+        $custom_cookie_expirations = json_decode(stripslashes($_POST['custom_cookie_expirations']), true);
+        if (json_last_error() == JSON_ERROR_NONE && is_array($custom_cookie_expirations)) {
+            update_site_option('custom_cookie_expirations', $custom_cookie_expirations);
+            echo '<div class="updated"><p>' . esc_html__('Settings saved.', 'mn-wordpress-multisite-cookie-manager') . '</p></div>';
+        } else {
+            echo '<div class="error"><p>' . esc_html__('Invalid JSON data.', 'mn-wordpress-multisite-cookie-manager') . '</p></div>';
+        }
     }
 
     // Fetch current settings
-    $custom_cookie_expirations = get_site_option('custom_cookie_expirations', '');
+    $custom_cookie_expirations = get_site_option('custom_cookie_expirations', array());
 
     // Output form for managing cookie settings
     echo '<div class="wrap">';
@@ -111,6 +119,7 @@ function mn_cookie_settings_page(){
     echo '<input type="submit" value="' . esc_attr__('Save Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button button-primary">';
     echo '<br class="clear">';
     echo '</div></div>';
+    echo '<pre>' . print_r($custom_cookie_expirations, true) . '</pre>';
     echo '</form>';
     echo '</div>';
 
