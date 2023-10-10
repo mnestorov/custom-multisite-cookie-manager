@@ -80,6 +80,9 @@ Navigate to the **Network Admin -> Settings -> Cookie Settings -> Cookie Usage R
 ### 1.8.1
 - Rename of the main plugin file.
 
+### 1.8.2
+- Minor fixes on the plugin name in to the README.md file.
+
 ---
 
 ## License
