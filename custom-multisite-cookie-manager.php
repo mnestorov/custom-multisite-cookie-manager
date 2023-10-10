@@ -3,7 +3,7 @@
  * Plugin Name: MN - Custom Multisite Cookie Manager
  * Plugin URI: https://github.com/mnestorov/wp-custom-multisite-cookie-manager
  * Description: Manage cookies across a multisite network.
- * Version: 1.7
+ * Version: 1.7.1
  * Author: Martin Nestorov
  * Author URI: https://github.com/mnestorov
  * Text Domain: custom-multisite-cookie-manager
@@ -99,23 +99,19 @@ function mn_cookie_settings_page(){
 }
 
 // Function to handle the logic for cookie expiration based on user roles and login status
-function mn_get_cookie_expiration($group, $default_expiration) {
+function mn_get_cookie_expiration($default_expiration) {
     $cookie_expirations = get_site_option('custom_cookie_expirations', array());
     $expiration = $default_expiration;
     
-    // Check if custom expiration is set for the group
-    if (isset($cookie_expirations[$group])) {
-        $custom_expiration = $cookie_expirations[$group];
-        if (is_user_logged_in()) {
-            $current_user = wp_get_current_user();
-            if (in_array('administrator', $current_user->roles)) {
-                $expiration = $custom_expiration + DAY_IN_SECONDS;
-            } else {
-                $expiration = $custom_expiration - HOUR_IN_SECONDS;
-            }
+    if (is_user_logged_in()) {
+        $current_user = wp_get_current_user();
+        if (in_array('administrator', $current_user->roles)) {
+            $expiration = $default_expiration + DAY_IN_SECONDS;
         } else {
-            $expiration = $custom_expiration - (30 * MINUTE_IN_SECONDS);
+            $expiration = $default_expiration - HOUR_IN_SECONDS;
         }
+    } else {
+        $expiration = $default_expiration - (30 * MINUTE_IN_SECONDS);
     }
     
     return $expiration;
