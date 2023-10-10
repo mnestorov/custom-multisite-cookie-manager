@@ -1,14 +1,20 @@
 <?php
 /** 
- * Plugin Name: MN - Custom Multisite Cookie Manager
+ * Plugin Name: MN - WordPress Multisite Cookie Manager
  * Plugin URI: https://github.com/mnestorov/wp-custom-multisite-cookie-manager
  * Description: Manage cookies across a multisite network.
- * Version: 1.7.1
+ * Version: 1.8
  * Author: Martin Nestorov
  * Author URI: https://github.com/mnestorov
- * Text Domain: custom-multisite-cookie-manager
+ * Text Domain: mn-wordpress-multisite-cookie-manager
  * Tags: wordpress, wordpress-plugin, wp, wp-plugin, wp-admin, wordpress-cookie
  */
+
+// Enable WP_DEBUG in your WordPress configuration to catch errors during development.
+// In your wp-config.php file:
+// define( 'WP_DEBUG', true );
+// define( 'WP_DEBUG_LOG', true );
+// define( 'WP_DEBUG_DISPLAY', false ); 
 
 // Register the uninstall hook
 register_uninstall_hook(__FILE__, 'mn_custom_cookie_manager_uninstall');
@@ -16,7 +22,7 @@ register_uninstall_hook(__FILE__, 'mn_custom_cookie_manager_uninstall');
 // Remove the `cookie_usage` table from the database
 function mn_custom_cookie_manager_uninstall() {
     global $wpdb;
-    $table_name = $wpdb->base_prefix . 'cookie_usage';
+    $table_name = $wpdb->base_prefix . 'multisite_cookie_usage';
     $wpdb->query("DROP TABLE IF EXISTS $table_name");
 }
 
@@ -31,11 +37,23 @@ function mn_get_unique_cookie_name() {
     return $cookie_name;
 }
 
+// Custom error handling function to log or display errors in a standardized way.
+function mn_log_error($message, $error_type = E_USER_NOTICE) {
+    if ( WP_DEBUG ) {
+        if ( defined('WP_DEBUG_LOG') && WP_DEBUG_LOG ) {
+            error_log($message);
+        }
+        if ( defined('WP_DEBUG_DISPLAY') && WP_DEBUG_DISPLAY ) {
+            trigger_error($message, $error_type);
+        }
+    }
+}
+
 // Function to register a new menu page in the network admin
 function mn_register_cookie_settings_page(){
     add_menu_page(
-        esc_html__('Cookie Settings', 'custom-multisite-cookie-manager'),
-        esc_html__('Cookie Settings', 'custom-multisite-cookie-manager'),
+        esc_html__('Cookie Settings', 'mn-wordpress-multisite-cookie-manager'),
+        esc_html__('Cookie Settings', 'mn-wordpress-multisite-cookie-manager'),
         'manage_network_options',
         'cookie-settings',
         'mn_cookie_settings_page',
@@ -55,7 +73,7 @@ function mn_cookie_settings_page(){
         // Sanitize and update settings
         $custom_cookie_expirations = (isset($_POST['custom_cookie_expirations']) && is_array($_POST['custom_cookie_expirations'])) ? array_map('sanitize_text_field', $_POST['custom_cookie_expirations']) : array();
         update_site_option('custom_cookie_expirations', $custom_cookie_expirations);
-        echo '<div class="updated"><p>' . esc_html__('Settings saved.', 'custom-multisite-cookie-manager') . '</p></div>';
+        echo '<div class="updated"><p>' . esc_html__('Settings saved.', 'mn-wordpress-multisite-cookie-manager') . '</p></div>';
     }
 
     // Fetch current settings
@@ -63,18 +81,18 @@ function mn_cookie_settings_page(){
 
     // Output form for managing cookie settings
     echo '<div class="wrap">';
-    echo '<h1>' . esc_html__('Cookie Settings', 'custom-multisite-cookie-manager') . '</h1>';
-    echo '<p>' . esc_html__('Current Blog ID:', 'custom-multisite-cookie-manager') . ' ' . esc_html($blog_id) . '</p>';
-    echo '<p>' . esc_html__('Generated Cookie Name:', 'custom-multisite-cookie-manager') . ' ' . esc_html($cookie_name) . '</p>';
+    echo '<h1>' . esc_html__('Cookie Settings', 'mn-wordpress-multisite-cookie-manager') . '</h1>';
+    echo '<p>' . esc_html__('Current Blog ID:', 'mn-wordpress-multisite-cookie-manager') . ' ' . esc_html($blog_id) . '</p>';
+    echo '<p>' . esc_html__('Generated Cookie Name:', 'mn-wordpress-multisite-cookie-manager') . ' ' . esc_html($cookie_name) . '</p>';
     echo '<form method="post" enctype="multipart/form-data">';
     wp_nonce_field('custom_cookie_nonce', 'custom_cookie_nonce');
-    echo '<h2>' . esc_html__('Cookie Expirations', 'custom-multisite-cookie-manager') . '</h2>';
+    echo '<h2>' . esc_html__('Cookie Expirations', 'mn-wordpress-multisite-cookie-manager') . '</h2>';
     echo '<textarea name="custom_cookie_expirations" rows="5" cols="50">' . esc_textarea(json_encode($custom_cookie_expirations, JSON_PRETTY_PRINT)) . '</textarea>';
     echo '<br>';
-    echo '<input type="submit" value="' . esc_attr__('Save Settings', 'custom-multisite-cookie-manager') . '" class="button button-primary">';
-    echo '<input type="submit" name="export_settings" value="' . esc_attr__('Export Settings', 'custom-multisite-cookie-manager') . '" class="button">';
+    echo '<input type="submit" value="' . esc_attr__('Save Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button button-primary">';
+    echo '<input type="submit" name="export_settings" value="' . esc_attr__('Export Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button">';
     echo '<input type="file" name="import_settings_file" accept=".json">';
-    echo '<input type="submit" name="import_settings" value="' . esc_attr__('Import Settings', 'custom-multisite-cookie-manager') . '" class="button">';
+    echo '<input type="submit" name="import_settings" value="' . esc_attr__('Import Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button">';
     echo '</form>';
     echo '</div>';
 
@@ -91,9 +109,9 @@ function mn_cookie_settings_page(){
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['import_settings']) && isset($_FILES['import_settings_file']) && $_FILES['import_settings_file']['error'] == 0 && isset($_POST['custom_cookie_nonce']) && wp_verify_nonce($_POST['custom_cookie_nonce'], 'custom_cookie_nonce')) {
         $json_settings = file_get_contents($_FILES['import_settings_file']['tmp_name']);
         if (mn_import_cookie_settings($json_settings)) {
-            echo '<div class="updated"><p>' . esc_html__('Settings imported successfully.', 'custom-multisite-cookie-manager') . '</p></div>';
+            echo '<div class="updated"><p>' . esc_html__('Settings imported successfully.', 'mn-wordpress-multisite-cookie-manager') . '</p></div>';
         } else {
-            echo '<div class="error"><p>' . esc_html__('Failed to import settings.', 'custom-multisite-cookie-manager') . '</p></div>';
+            echo '<div class="error"><p>' . esc_html__('Failed to import settings.', 'mn-wordpress-multisite-cookie-manager') . '</p></div>';
         }
     }
 }
@@ -103,15 +121,19 @@ function mn_get_cookie_expiration($default_expiration) {
     $cookie_expirations = get_site_option('custom_cookie_expirations', array());
     $expiration = $default_expiration;
     
-    if (is_user_logged_in()) {
-        $current_user = wp_get_current_user();
-        if (in_array('administrator', $current_user->roles)) {
-            $expiration = $default_expiration + DAY_IN_SECONDS;
+    if ($cookie_expirations) {
+        if (is_user_logged_in()) {
+            $current_user = wp_get_current_user();
+            if (in_array('administrator', $current_user->roles)) {
+                $expiration = $default_expiration + DAY_IN_SECONDS;
+            } else {
+                $expiration = $default_expiration - HOUR_IN_SECONDS;
+            }
         } else {
-            $expiration = $default_expiration - HOUR_IN_SECONDS;
+            $expiration = $default_expiration - (30 * MINUTE_IN_SECONDS);
         }
     } else {
-        $expiration = $default_expiration - (30 * MINUTE_IN_SECONDS);
+        mn_log_error('Failed to fetch custom cookie expirations from the database.');
     }
     
     return $expiration;
@@ -129,7 +151,7 @@ add_action('init', 'mn_set_custom_cookie');
 // Function to create a new database table for logging cookie usage on plugin activation
 function mn_create_cookie_usage_table() {
     global $wpdb;
-    $table_name = $wpdb->base_prefix . 'cookie_usage';
+    $table_name = $wpdb->base_prefix . 'multisite_cookie_usage';
     $charset_collate = $wpdb->get_charset_collate();
     $sql = "CREATE TABLE $table_name (
         id mediumint(9) NOT NULL AUTO_INCREMENT,
@@ -140,7 +162,10 @@ function mn_create_cookie_usage_table() {
         UNIQUE KEY id (id)
     ) $charset_collate;";
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-    dbDelta($sql);
+    $result = dbDelta($sql);
+    if ( !empty($result['errors']) ) {
+        mn_log_error(print_r($result['errors'], true));
+    }
 }
 register_activation_hook(__FILE__, 'mn_create_cookie_usage_table');
 
@@ -148,7 +173,7 @@ register_activation_hook(__FILE__, 'mn_create_cookie_usage_table');
 function mn_log_cookie_usage() {
     $blog_id = get_current_blog_id();
     global $wpdb;
-    $table_name = $wpdb->base_prefix . 'cookie_usage';
+    $table_name = $wpdb->base_prefix . 'multisite_cookie_usage';
 
     foreach ($_COOKIE as $cookie_name => $cookie_value) {
         $cookie_log_entry = array(
@@ -168,6 +193,10 @@ function mn_log_cookie_usage() {
         if (null === $existing_entry) {
             $wpdb->insert($table_name, $cookie_log_entry);
         }
+
+        if ( false === $insert_result ) {
+            mn_log_error('Failed to insert cookie usage log entry: ' . $wpdb->last_error);
+        }
     }
 }
 add_action('init', 'mn_log_cookie_usage');
@@ -175,7 +204,7 @@ add_action('init', 'mn_log_cookie_usage');
 // Function to write log entries from transient to database hourly
 function mn_write_cookie_usage_log_entries() {
     global $wpdb;
-    $table_name = $wpdb->base_prefix . 'cookie_usage';
+    $table_name = $wpdb->base_prefix . 'multisite_cookie_usage';
     $log_entries = get_transient('cookie_usage_log_entries');
     if ($log_entries && is_array($log_entries)) {
         $all_inserts_successful = true;
@@ -202,8 +231,8 @@ if (!wp_next_scheduled('write_cookie_usage_log_entries_hook')) {
 function mn_register_cookie_reporting_page(){
     add_submenu_page(
         'cookie-settings',
-        esc_html__('Cookie Usage Reports', 'custom-multisite-cookie-manager'),
-        esc_html__('Cookie Usage Reports', 'custom-multisite-cookie-manager'),
+        esc_html__('Cookie Usage Reports', 'mn-wordpress-multisite-cookie-manager'),
+        esc_html__('Cookie Usage Reports', 'mn-wordpress-multisite-cookie-manager'),
         'manage_network_options',
         'cookie-reports',
         'mn_cookie_reporting_page'
@@ -214,7 +243,7 @@ add_action('network_admin_menu', 'mn_register_cookie_reporting_page');
 // Function to display cookie usage reports
 function mn_cookie_reporting_page() {
     global $wpdb;
-    $table_name = $wpdb->base_prefix . 'cookie_usage';
+    $table_name = $wpdb->base_prefix . 'multisite_cookie_usage';
     $results = $wpdb->get_results("SELECT cookie_name, COUNT(DISTINCT blog_id) as blog_count FROM $table_name GROUP BY cookie_name", OBJECT);
 
     echo '<div class="wrap">';
