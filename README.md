@@ -116,7 +116,7 @@ Exports cookie settings to a JSON file.
 
 Imports cookie settings from a JSON file.
 
-### mn_custom_admin_styles()
+### mn_custom_plugin_styles()
 
 The function is designed to inject custom CSS styling into the admin pages of your WordPress site without the need for an external stylesheet file. This is achieved by hooking the function into the `admin_head` action, which triggers the function to output a `<style>` block within the `<head>` section of WordPress admin pages.
 
@@ -156,7 +156,7 @@ On the **Settings->Cookie Settings** page, you'll find options to export your cu
 
 ### How can I style the settings and reports pages?
 
-The plugin includes a function `mn_custom_admin_styles()` that injects custom CSS into the admin pages. You can modify the CSS rules within this function to change the appearance of the plugin's settings and reports pages according to your preferences.
+The plugin includes a function `mn_custom_plugin_styles()` that injects custom CSS into the admin pages. You can modify the CSS rules within this function to change the appearance of the plugin's settings and reports pages according to your preferences.
 
 ## Changelog
 
