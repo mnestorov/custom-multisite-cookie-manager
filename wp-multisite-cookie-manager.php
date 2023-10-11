@@ -246,7 +246,7 @@ function mn_log_cookie_usage() {
             'cookie_value' => $cookie_value,
             'geo_location' => $geo_location,
             'user_session_id' => $user_session_id,
-            'timestamp' => current_time('mysql')
+            'time_stamp' => current_time('mysql')
         );
 
         // Check if the cookie entry already exists in the database to prevent duplicates
