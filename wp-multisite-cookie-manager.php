@@ -2,7 +2,7 @@
 /** 
  * Plugin Name: MN - WordPress Multisite Cookie Manager
  * Plugin URI: https://github.com/mnestorov/wp-multisite-cookie-manager
- * Description: Manage cookies across a multisite network.
+ * Description: Manage cookies across a WordPress multisite network.
  * Version: 2.0.1
  * Author: Martin Nestorov
  * Author URI: https://github.com/mnestorov
