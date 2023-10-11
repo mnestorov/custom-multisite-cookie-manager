@@ -71,3 +71,6 @@
     - Update the `mn_log_cookie_usage()` function to log geo-location and user session data along with the cookie data.  
 - Display Geo-location and Session Data:
     - Update the `mn_cookie_reporting_page()` function to display the geo-location and session data in the Cookie Report table.
+
+### 2.0.3
+- Use a transient to cache the geolocation data, added deactivation hook, bug fixes and improvements.
