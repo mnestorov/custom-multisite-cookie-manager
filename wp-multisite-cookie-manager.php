@@ -3,11 +3,11 @@
  * Plugin Name: MN - WordPress Multisite Cookie Manager
  * Plugin URI: https://github.com/mnestorov/wp-multisite-cookie-manager
  * Description: Manage cookies across a multisite network.
- * Version: 1.9
+ * Version: 2.0
  * Author: Martin Nestorov
  * Author URI: https://github.com/mnestorov
  * Text Domain: mn-wordpress-multisite-cookie-manager
- * Tags: wordpress, wordpress-plugin, wp, wp-plugin, wp-admin, wordpress-cookie
+ * Tags: wp, wp-plugin, wp-admin, wordpress, wordpress-plugin, wordpress-cookie, wordpress-multisite
  */
 
 // Enable WP_DEBUG in your WordPress configuration to catch errors during development.
@@ -28,12 +28,18 @@ function mn_custom_cookie_manager_uninstall() {
 
 // Generate the cookie name
 function mn_get_unique_cookie_name() {
+    // Get the site name
+    $site_name = get_bloginfo('name');
+    
+    // Convert the site name to lowercase and replace white spaces with underscores
+    $formatted_name = strtolower(str_replace(' ', '_', $site_name));
+    
     // Get the current blog ID
     $blog_id = get_current_blog_id();
-
-    // Create a unique cookie name for this site
-    $cookie_name = 'custom_cookie_' . $blog_id;
-
+    
+    // Add a prefix of "__" before the name and append the blog_id as a suffix
+    $cookie_name = '__' . $formatted_name . '_' . $blog_id;
+    
     return $cookie_name;
 }
 
