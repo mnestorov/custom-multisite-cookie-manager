@@ -3,7 +3,7 @@
  * Plugin Name: MN - WordPress Multisite Cookie Manager
  * Plugin URI: https://github.com/mnestorov/wp-multisite-cookie-manager
  * Description: Manage cookies across a WordPress multisite network.
- * Version: 2.0.3
+ * Version: 2.0.5
  * Author: Martin Nestorov
  * Author URI: https://github.com/mnestorov
  * Text Domain: mn-wordpress-multisite-cookie-manager
@@ -243,60 +243,55 @@ register_activation_hook(__FILE__, 'mn_create_cookie_usage_table');
 // Function to log cookie usage on page load
 function mn_log_cookie_usage() {
     if ( ! session_id() ) {
-		session_start();
-	}
+        session_start();
+    }
 
     $blog_id = get_current_blog_id();
     global $wpdb;
     $table_name = $wpdb->base_prefix . 'multisite_cookie_usage';
 
+    $unique_cookie_name = mn_get_unique_cookie_name();  // Get the unique cookie name
+
     foreach ($_COOKIE as $cookie_name => $cookie_value) {
-        // Decode the JSON data from the cookie_value
-        $cookie_data = json_decode($cookie_value, true);
         
-        // Log the decoded data to your error log for debugging
-        mn_log_error(print_r($cookie_data, true));
-        
-        // Check if the decoding was successful
-        if (json_last_error() == JSON_ERROR_NONE) {
-            $geo_location = isset($cookie_data['geo_data']['country_name']) ? $cookie_data['geo_data']['country_name'] : 'Unknown';
-            $user_session_id = isset($cookie_data['session_id']) ? $cookie_data['session_id'] : 'Unknown';
-        } else {
-            mn_log_error('JSON decoding error: ' . json_last_error_msg());
-            $geo_location = 'Unknown';
-            $user_session_id = 'Unknown';
-        }
+        // Check if the cookie name matches the unique cookie name
+        if ($cookie_name === $unique_cookie_name) {
+            
+            // Decode the JSON data from the cookie_value
+            $cookie_data = json_decode($cookie_value, true);
+            
+            // Log the decoded data to your error log for debugging
+            mn_log_error(print_r($cookie_data, true));
+            
+            $cookie_log_entry = array(
+                'blog_id' => $blog_id,
+                'cookie_name' => $cookie_name,
+                'cookie_value' => $cookie_value,
+                'time_stamp' => current_time('mysql')
+            );
 
-        $cookie_log_entry = array(
-            'blog_id' => $blog_id,
-            'cookie_name' => $cookie_name,
-            'cookie_value' => $cookie_value,
-            'geo_location' => $geo_location,
-            'user_session_id' => $user_session_id,
-            'time_stamp' => current_time('mysql')
-        );
+            // Log the entire cookie_log_entry array before attempting to insert it
+            mn_log_error(print_r($cookie_log_entry, true));
 
-        // Log the entire cookie_log_entry array before attempting to insert it
-        mn_log_error(print_r($cookie_log_entry, true));
+            // Check if the cookie entry already exists in the database to prevent duplicates
+            $existing_entry = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM $table_name WHERE blog_id = %d AND cookie_name = %s",
+                $blog_id,
+                $cookie_name
+            ));
 
-        // Check if the cookie entry already exists in the database to prevent duplicates
-        $existing_entry = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM $table_name WHERE blog_id = %d AND cookie_name = %s",
-            $blog_id,
-            $cookie_name
-        ));
-
-        if (null === $existing_entry) {
-            $insert_result = $wpdb->insert($table_name, $cookie_log_entry);
-            if (false === $insert_result) {
-                mn_log_error('Failed to insert cookie usage log entry: ' . $wpdb->last_error);
-            } else {
-                mn_log_error('Successfully inserted cookie usage log entry');
+            if (null === $existing_entry) {
+                $insert_result = $wpdb->insert($table_name, $cookie_log_entry);
+                if (false === $insert_result) {
+                    mn_log_error('Failed to insert cookie usage log entry: ' . $wpdb->last_error);
+                } else {
+                    mn_log_error('Successfully inserted cookie usage log entry');
+                }
             }
-        }
 
-        // Log the raw cookie value to see what's being stored
-        mn_log_error('Raw cookie value: ' . $cookie_value);
+            // Log the raw cookie value to see what's being stored
+            mn_log_error('Raw cookie value: ' . $cookie_value);
+        }
     }
 }
 add_action('init', 'mn_log_cookie_usage');
@@ -344,22 +339,45 @@ add_action('admin_menu', 'mn_register_cookie_reporting_page');
 function mn_cookie_reporting_page() {
     global $wpdb;
     $table_name = $wpdb->base_prefix . 'multisite_cookie_usage';
-    $results = $wpdb->get_results("SELECT cookie_name, cookie_value, geo_location, user_session_id, COUNT(DISTINCT blog_id) as blog_count, time_stamp FROM $table_name GROUP BY cookie_name", OBJECT);
+    $unique_cookie_name = mn_get_unique_cookie_name();  // Get the unique cookie name
+    
+    // Modify the SQL query to include a WHERE clause that filters on cookie_name
+    $results = $wpdb->get_results($wpdb->prepare(
+        "SELECT cookie_name, cookie_value, COUNT(DISTINCT blog_id) as blog_count, time_stamp 
+        FROM $table_name 
+        WHERE cookie_name = %s 
+        GROUP BY cookie_name",
+        $unique_cookie_name
+    ), OBJECT);
 
     echo '<div class="wrap">';
     echo '<h1>Cookie Usage Reports</h1>';
     echo '<table class="wp-list-table widefat fixed striped">';
-    echo '<thead><tr><th>Cookie Name</th><th>Cookie Value</th><th>Geo-Location</th><th>User Session ID</th><th>Number of Blogs</th><th>Timestamp</th></tr></thead>';
+    echo '<thead><tr><th>Cookie Name</th><th>Country</th><th>Session ID</th><th>Number of Blogs</th><th>Timestamp</th></tr></thead>';
     echo '<tbody>';
     
     foreach ($results as $row) {
+        // Remove any escape characters before decoding
+        $cleaned_cookie_value = stripslashes($row->cookie_value);
+        
+        // Decode the cleaned JSON string into an associative array
+        $cookie_data = json_decode($cleaned_cookie_value, true);
+        
+        // Check if json_decode was successful
+        if (json_last_error() == JSON_ERROR_NONE) {
+            $country = isset($cookie_data['geo_data']['country_name']) ? $cookie_data['geo_data']['country_name'] : 'Unknown';
+            $session_id = isset($cookie_data['session_id']) ? $cookie_data['session_id'] : 'Unknown';
+        } else {
+            $country = 'JSON Decoding Error';
+            $session_id = 'JSON Decoding Error';
+        }
+        
         echo '<tr>';
         echo '<td>' . esc_html($row->cookie_name) . '</td>';
-		echo '<td>' . esc_html($row->cookie_value) . '</td>';
-        echo '<td>' . esc_html($row->geo_location) . '</td>';
-        echo '<td>' . esc_html($row->user_session_id) . '</td>';
+        echo '<td>' . esc_html($country) . '</td>';  // Display country
+        echo '<td>' . esc_html($session_id) . '</td>';  // Display session ID
         echo '<td>' . esc_html($row->blog_count) . '</td>';
-		echo '<td>' . esc_html($row->time_stamp) . '</td>';
+        echo '<td>' . esc_html($row->time_stamp) . '</td>';
         echo '</tr>';
     }
     
@@ -367,7 +385,6 @@ function mn_cookie_reporting_page() {
     echo '</table>';
     echo '</div>';
 }
-
 
 // Function to export cookie settings to a JSON file
 function mn_export_cookie_settings() {
