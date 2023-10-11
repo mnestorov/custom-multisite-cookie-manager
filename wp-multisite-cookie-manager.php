@@ -3,7 +3,7 @@
  * Plugin Name: MN - WordPress Multisite Cookie Manager
  * Plugin URI: https://github.com/mnestorov/wp-multisite-cookie-manager
  * Description: Manage cookies across a WordPress multisite network.
- * Version: 2.0.1
+ * Version: 2.0.2
  * Author: Martin Nestorov
  * Author URI: https://github.com/mnestorov
  * Text Domain: mn-wordpress-multisite-cookie-manager
@@ -15,6 +15,12 @@
 // define( 'WP_DEBUG', true );
 // define( 'WP_DEBUG_LOG', true );
 // define( 'WP_DEBUG_DISPLAY', false ); 
+
+/**
+ * Geolocation API key
+ * Get the key from: https://app.ipgeolocation.io/
+ */
+define('GEO_API_KEY', '24a6f2d5bd7e45759a759aaa668af953');
 
 // Register the uninstall hook
 register_uninstall_hook(__FILE__, 'mn_custom_cookie_manager_uninstall');
@@ -178,7 +184,26 @@ function mn_set_custom_cookie() {
     $default_expiration = 86400;  // Example default expiration of 1 day
     $cookie_expiration = mn_get_cookie_expiration($default_expiration);
     $cookie_name = mn_get_unique_cookie_name(); // Get the unique cookie name
-    setcookie($cookie_name, 'cookie_value', time() + $cookie_expiration, "/");
+
+    // Get geolocation data
+    $geo_data = mn_get_geolocation_data();
+
+    // Check if a session ID cookie already exists, otherwise generate a new session ID
+    $session_id = isset($_COOKIE['__user_session']) ? $_COOKIE['__user_session'] : wp_generate_uuid4();
+
+    // Build the cookie value as a JSON object
+    $cookie_value = json_encode(array(
+        'session_id' => $session_id,
+        'geo_data' => $geo_data
+    ));
+
+    // Set the cookie
+    setcookie($cookie_name, $cookie_value, time() + $cookie_expiration, "/");
+
+    // Optionally set a separate session ID cookie if it doesn't exist yet
+    if (!isset($_COOKIE['__user_session'])) {
+        setcookie('__user_session', $session_id, time() + $cookie_expiration, "/");
+    }
 }
 add_action('init', 'mn_set_custom_cookie');
 
@@ -189,11 +214,13 @@ function mn_create_cookie_usage_table() {
     $charset_collate = $wpdb->get_charset_collate();
     $sql = "CREATE TABLE $table_name (
         id mediumint(9) NOT NULL AUTO_INCREMENT,
-        blog_id mediumint(9) NOT NULL,
+        site_id mediumint(9) NOT NULL,
         cookie_name varchar(255) NOT NULL,
         cookie_value varchar(255) NOT NULL,
-        timestamp datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
-        UNIQUE KEY id (id)
+        geo_location varchar(255),
+        user_session_id varchar(255),
+        time_stamp datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+        PRIMARY KEY  (id)
     ) $charset_collate;";
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     $result = dbDelta($sql);
@@ -210,10 +237,15 @@ function mn_log_cookie_usage() {
     $table_name = $wpdb->base_prefix . 'multisite_cookie_usage';
 
     foreach ($_COOKIE as $cookie_name => $cookie_value) {
+        $geo_location = mn_get_geolocation_data();
+        $user_session_id = session_id();
+
         $cookie_log_entry = array(
             'blog_id' => $blog_id,
             'cookie_name' => $cookie_name,
             'cookie_value' => $cookie_value,
+            'geo_location' => $geo_location,
+            'user_session_id' => $user_session_id,
             'timestamp' => current_time('mysql')
         );
 
@@ -225,11 +257,11 @@ function mn_log_cookie_usage() {
         ));
 
         if (null === $existing_entry) {
-            $wpdb->insert($table_name, $cookie_log_entry);
-        }
-
-        if ( false === $insert_result ) {
-            mn_log_error('Failed to insert cookie usage log entry: ' . $wpdb->last_error);
+            $insert_result = $wpdb->insert($table_name, $cookie_log_entry);
+            
+            if (false === $insert_result) {
+                mn_log_error('Failed to insert cookie usage log entry: ' . $wpdb->last_error);
+            }
         }
     }
 }
@@ -278,17 +310,19 @@ add_action('admin_menu', 'mn_register_cookie_reporting_page');
 function mn_cookie_reporting_page() {
     global $wpdb;
     $table_name = $wpdb->base_prefix . 'multisite_cookie_usage';
-    $results = $wpdb->get_results("SELECT cookie_name, COUNT(DISTINCT blog_id) as blog_count FROM $table_name GROUP BY cookie_name", OBJECT);
+    $results = $wpdb->get_results("SELECT cookie_name, geo_location, user_session_id, COUNT(DISTINCT blog_id) as blog_count FROM $table_name GROUP BY cookie_name", OBJECT);
 
     echo '<div class="wrap">';
     echo '<h1>Cookie Usage Reports</h1>';
     echo '<table class="wp-list-table widefat fixed striped">';
-    echo '<thead><tr><th>Cookie Name</th><th>Number of Blogs</th></tr></thead>';
+    echo '<thead><tr><th>Cookie Name</th><th>Geo-Location</th><th>User Session ID</th><th>Number of Blogs</th></tr></thead>';
     echo '<tbody>';
     
     foreach ($results as $row) {
         echo '<tr>';
         echo '<td>' . esc_html($row->cookie_name) . '</td>';
+        echo '<td>' . esc_html($row->geo_location) . '</td>';
+        echo '<td>' . esc_html($row->user_session_id) . '</td>';
         echo '<td>' . esc_html($row->blog_count) . '</td>';
         echo '</tr>';
     }
@@ -307,11 +341,40 @@ function mn_export_cookie_settings() {
 // Function to import cookie settings from a JSON file
 function mn_import_cookie_settings($json_settings) {
     $settings_array = json_decode($json_settings, true);
+    
     if (json_last_error() == JSON_ERROR_NONE && is_array($settings_array)) {
         update_site_option('custom_cookie_expirations', $settings_array);
         return true;
     }
+    
     return false;
+}
+
+// Function to get geo-location data
+function mn_get_geolocation_data() {
+    // Geolocation API key
+    $api_key = GEO_API_KEY;
+    // Get the user's IP address
+    $user_ip = $_SERVER['REMOTE_ADDR'];
+    $api_url = "https://api.ipgeolocation.io/ipgeo?apiKey=" . $api_key . "&ip=" . $user_ip;
+
+    // Make a request to the IP Geolocation API
+    $response = wp_remote_get($api_url);
+
+    // Check for errors in the response
+    if (is_wp_error($response)) {
+        return 'Unable to retrieve geo-location data';
+    }
+
+    // Parse the response body
+    $geo_data = json_decode(wp_remote_retrieve_body($response), true);
+
+    // Check for valid data
+    if (!isset($geo_data['country_name']) || !isset($geo_data['city'])) {
+        return false;
+    }
+
+    return $geo_data;
 }
 
 // Function to inject custom CSS styling into the admin pages

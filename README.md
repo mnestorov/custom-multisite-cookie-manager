@@ -8,15 +8,16 @@
 
 **_Manage cookies across a WordPress multisite network with the Multisite Cookie Manager plugin._**
 
-This plugin allows network administrators to manage cookie expiration settings, scan, and identify all cookies being set across the multisite network. It provides a network admin settings page where you can specify cookie expiration times, view cookie usage reports, and see a list of all unique cookies being set across the network. A unique cookie will be set for each site in the network based on the specified settings.
+This plugin allows network administrators and site admins to manage cookie expiration settings, and identify all cookies being set across the multisite network. It provides a settings page within each site's admin area where you can specify cookie expiration times based on user roles and manage geo-location data as well as user sessions. A unique cookie will be set for each site in the network based on the specified settings.
 
 ## Features
 
-- Unique cookie generation per site.
-- Customizable cookie expiration times based on user roles.
+- Unique cookie generation per site, named based on the site name and blog ID.
+- Customizable cookie expiration times based on user roles and login status.
+- Geo-location data collection and user session tracking.
 - Logging and error handling for debugging.
 - Export and import of cookie settings via JSON.
-- Network-wide and per-site settings page for managing cookies.
+- Site admin settings page for managing cookies.
 - Usage reporting for monitoring cookies across the network.
 
 ## Installation
@@ -36,7 +37,7 @@ This plugin allows network administrators to manage cookie expiration settings, 
 3. On the **Cookie Settings** page, you'll find a form to manage cookie expirations:
 4. Under **Cookie Expirations**, text area, input a JSON object with user roles and corresponding expiration times in seconds.
 
-   - **Example:**
+**Example:**
 
    ```json
    {
@@ -115,6 +116,10 @@ Exports cookie settings to a JSON file.
 ### mn_import_cookie_settings($json_settings)
 
 Imports cookie settings from a JSON file.
+
+### mn_get_geolocation_data()
+
+Fetches the user's geo-location data using an external [API](https://app.ipgeolocation.io/).
 
 ### mn_custom_plugin_styles()
 

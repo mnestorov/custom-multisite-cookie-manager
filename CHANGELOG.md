@@ -57,3 +57,17 @@
 
 ### 2.0.1
 - Added additional function for the css styles of the plugin admin, added minor styling to the plugin admin debug info, removed all inline css, minor fixes on the plugin description in to the README.md file.
+
+### 2.0.2
+- The `cookie_value` of the custom cookie will contain both the session ID and geolocation data, which can be parsed on the server or client-side as needed.
+    - The `mn_get_geolocation_data()` function is called to obtain the geolocation data.
+    - The session ID is either retrieved from an existing cookie or generated anew using `wp_generate_uuid4()`.
+    - The cookie_value is constructed as a JSON object containing the session ID and geolocation data.
+    - The `setcookie()` function is called to set the custom cookie with the new cookie_value.
+    - Optionally, a separate session ID cookie is set if it doesn’t already exist.
+- Modify the Database Table Structure:
+    - Update the database table structure to include new columns for storing geo-location and session data.
+- Log Geo-location and Session Data:
+    - Update the `mn_log_cookie_usage()` function to log geo-location and user session data along with the cookie data.  
+- Display Geo-location and Session Data:
+    - Update the `mn_cookie_reporting_page()` function to display the geo-location and session data in the Cookie Report table.
