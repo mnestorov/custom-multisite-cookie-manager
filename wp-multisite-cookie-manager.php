@@ -214,7 +214,7 @@ function mn_create_cookie_usage_table() {
     $charset_collate = $wpdb->get_charset_collate();
     $sql = "CREATE TABLE $table_name (
         id mediumint(9) NOT NULL AUTO_INCREMENT,
-        site_id mediumint(9) NOT NULL,
+        blog_id mediumint(9) NOT NULL,
         cookie_name varchar(255) NOT NULL,
         cookie_value varchar(255) NOT NULL,
         geo_location varchar(255),
@@ -258,11 +258,13 @@ function mn_log_cookie_usage() {
 
         if (null === $existing_entry) {
             $insert_result = $wpdb->insert($table_name, $cookie_log_entry);
-            
             if (false === $insert_result) {
                 mn_log_error('Failed to insert cookie usage log entry: ' . $wpdb->last_error);
+            } else {
+                mn_log_error('Successfully inserted cookie usage log entry');
             }
         }
+        
     }
 }
 add_action('init', 'mn_log_cookie_usage');
@@ -346,32 +348,31 @@ function mn_import_cookie_settings($json_settings) {
         update_site_option('custom_cookie_expirations', $settings_array);
         return true;
     }
-    
+
     return false;
 }
 
 // Function to get geo-location data
 function mn_get_geolocation_data() {
-    // Geolocation API key
     $api_key = GEO_API_KEY;
-    // Get the user's IP address
     $user_ip = $_SERVER['REMOTE_ADDR'];
-    $api_url = "https://api.ipgeolocation.io/ipgeo?apiKey=" . $api_key . "&ip=" . $user_ip;
 
-    // Make a request to the IP Geolocation API
-    $response = wp_remote_get($api_url);
+    // Attempt to fetch geolocation data from cache
+    $geo_data = get_transient('geo_data_' . $user_ip);
+    if (false === $geo_data) {
+        $api_url = "https://api.ipgeolocation.io/ipgeo?apiKey=" . $api_key . "&ip=" . $user_ip;
+        $response = wp_remote_get($api_url);
+        if (is_wp_error($response)) {
+            return 'Unable to retrieve geo-location data';
+        }
 
-    // Check for errors in the response
-    if (is_wp_error($response)) {
-        return 'Unable to retrieve geo-location data';
-    }
+        $geo_data = json_decode(wp_remote_retrieve_body($response), true);
+        if (!isset($geo_data['country_name']) || !isset($geo_data['city'])) {
+            return false;
+        }
 
-    // Parse the response body
-    $geo_data = json_decode(wp_remote_retrieve_body($response), true);
-
-    // Check for valid data
-    if (!isset($geo_data['country_name']) || !isset($geo_data['city'])) {
-        return false;
+        // Cache geolocation data for 1 hour
+        set_transient('geo_data_' . $user_ip, $geo_data, HOUR_IN_SECONDS);
     }
 
     return $geo_data;
