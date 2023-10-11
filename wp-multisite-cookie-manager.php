@@ -227,8 +227,6 @@ function mn_create_cookie_usage_table() {
         blog_id mediumint(9) NOT NULL,
         cookie_name varchar(255) NOT NULL,
         cookie_value TEXT NOT NULL,
-        geo_location varchar(255),
-        user_session_id varchar(255),
         time_stamp datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
         PRIMARY KEY  (id)
     ) $charset_collate;";
