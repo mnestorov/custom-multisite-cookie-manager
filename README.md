@@ -116,6 +116,10 @@ Exports cookie settings to a JSON file.
 
 Imports cookie settings from a JSON file.
 
+### mn_custom_admin_styles()
+
+The function is designed to inject custom CSS styling into the admin pages of your WordPress site without the need for an external stylesheet file. This is achieved by hooking the function into the `admin_head` action, which triggers the function to output a `<style>` block within the `<head>` section of WordPress admin pages.
+
 ## Error Handling and Debugging
 
 Enable `WP_DEBUG` in your WordPress configuration to catch errors during development. In your `wp-config.php` file:
@@ -134,15 +138,25 @@ Upon uninstallation, the plugin will remove the `multisite_cookie_usage` table f
 
 ### How do I set custom cookie expiration times?
 
-Navigate to the **Network Admin -> Settings -> Cookie Settings** page and enter the desired expiration times in the form provided. Click **Save Settings** to save your changes.
+Navigate to the **Settings->Cookie Settings** page on any site within your network. In the provided text area, input a JSON object specifying the expiration times for different user roles and for logged-out users. Click "Save Settings" to save your changes.
 
 ### How are cookies named?
 
-Each cookie is named `custom_cookie_[BLOG_ID]`, where `[BLOG_ID]` is the ID of the site within the network.
+Cookies are named following this pattern: `__site_name_blog_id`, where `site_name` is the name of the site with all spaces removed and converted to lowercase, and `blog_id` is the ID of the site within the network.
+
+**Example:** For a site named "My Site" with a blog ID of 2, the cookie would be named `__mysite_2`.
 
 ### How can I view all cookies being set across the network?
 
-Navigate to the **Network Admin -> Settings -> Cookie Settings -> Cookie Usage Reports** to view a list of all unique cookies being set across the network along with the number of sites on which each cookie has been found.
+Navigate to the **Settings->Cookie Settings->Cookie Usage Reports** on any site within your network to view a list of all unique cookies being set across the network along with the number of sites on which each cookie has been found.
+
+### How can I export or import cookie settings?
+
+On the **Settings->Cookie Settings** page, you'll find options to export your current cookie settings to a JSON file, or import settings from a JSON file. This allows for easy transfer of settings between different sites or for backup purposes.
+
+### How can I style the settings and reports pages?
+
+The plugin includes a function `mn_custom_admin_styles()` that injects custom CSS into the admin pages. You can modify the CSS rules within this function to change the appearance of the plugin's settings and reports pages according to your preferences.
 
 ## Changelog
 

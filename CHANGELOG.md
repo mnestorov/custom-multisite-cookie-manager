@@ -54,3 +54,6 @@
     - Modifying `mn_get_cookie_expiration` and `mn_cookie_settings_page` functions to use `get_blog_option` and `update_blog_option` instead of `get_site_option` and `update_site_option`.
     - The cookie name will have the format `__site_name_blog_id`, where `site_name` is the name of the site (with spaces replaced by underscores and converted to lowercase), and `blog_id` is the ID of the current blog.
     - Added more detailed explanation of how the plugin works in to the README.md file.
+
+### 2.0.1
+- Added additional function for the css styles of the plugin admin, added minor styling to the plugin admin debug info, removed all inline css, minor fixes on the plugin description in to the README.md file.

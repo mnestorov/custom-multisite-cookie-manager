@@ -3,7 +3,7 @@
  * Plugin Name: MN - WordPress Multisite Cookie Manager
  * Plugin URI: https://github.com/mnestorov/wp-multisite-cookie-manager
  * Description: Manage cookies across a multisite network.
- * Version: 2.0
+ * Version: 2.0.1
  * Author: Martin Nestorov
  * Author URI: https://github.com/mnestorov
  * Text Domain: mn-wordpress-multisite-cookie-manager
@@ -56,7 +56,7 @@ function mn_log_error($message, $error_type = E_USER_NOTICE) {
 }
 
 // Function to register a new menu page in the network admin
-function mn_register_cookie_settings_page(){
+function mn_register_cookie_settings_page() {
     add_menu_page(
         esc_html__('Cookie Settings', 'mn-wordpress-multisite-cookie-manager'),
         esc_html__('Cookie Settings', 'mn-wordpress-multisite-cookie-manager'),
@@ -70,7 +70,7 @@ function mn_register_cookie_settings_page(){
 add_action('admin_menu', 'mn_register_cookie_settings_page');
 
 // Function to display the cookie settings page
-function mn_cookie_settings_page(){
+function mn_cookie_settings_page() {
     // For debug
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
@@ -101,10 +101,10 @@ function mn_cookie_settings_page(){
     echo '<form method="post" enctype="multipart/form-data">';
     wp_nonce_field('custom_cookie_nonce', 'custom_cookie_nonce');
     
-    echo '<h1 style="margin-right:10px">' . esc_html__('Cookie Settings', 'mn-wordpress-multisite-cookie-manager') . '</h1>';
-    echo '<div style="padding:5px; background-color:#e2f3eb; border:1px solid #b7e1cd; border-radius:3px;">';
-	echo '<input type="submit" name="export_settings" value="' . esc_attr__('Export Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="page-title-action" style="margin-top:5px;">';
-	echo '<input type="submit" name="import_settings" value="' . esc_attr__('Import Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="page-title-action" style="margin-top:5px; margin-right:10px">';
+    echo '<h1>' . esc_html__('Cookie Settings', 'mn-wordpress-multisite-cookie-manager') . '</h1>';
+    echo '<div class="mn-import-export">';
+	echo '<input type="submit" name="export_settings" value="' . esc_attr__('Export Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="page-title-action">';
+	echo '<input type="submit" name="import_settings" value="' . esc_attr__('Import Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="page-title-action">';
     echo '<input type="file" name="import_settings_file" accept=".json">';
 	echo '</div>';
 
@@ -118,14 +118,14 @@ function mn_cookie_settings_page(){
 
     echo '<table class="form-table" role="presentation"><tbody><tr>';
     echo '<th scope="row"><label>' . esc_html__('Cookie Expirations:', 'mn-wordpress-multisite-cookie-manager') . '</label></th>';
-    echo '<td><textarea name="custom_cookie_expirations" rows="5" cols="50">' . esc_textarea(json_encode($custom_cookie_expirations, JSON_PRETTY_PRINT)) . '</textarea></td>';
+    echo '<td><textarea name="custom_cookie_expirations" rows="5" cols="50">' . esc_textarea(json_encode($custom_cookie_expirations, JSON_PRETTY_PRINT)) . '</textarea><p class="description">Input a JSON object with user roles and corresponding expiration times in seconds.</p></td>';
     echo '</tr></tbody></table>';
     echo '<br>';
     echo '<div class="tablenav bottom"><div class="alignleft actions bulkactions">';
     echo '<input type="submit" value="' . esc_attr__('Save Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button button-primary">';
     echo '<br class="clear">';
     echo '</div></div>';
-    echo '<pre>' . print_r($custom_cookie_expirations, true) . '</pre>';
+    echo '<div class="mn-debug-info"><p>DEBUG INFO</p><pre>' . print_r($custom_cookie_expirations, true) . '</pre></div>';
     echo '</form>';
     echo '</div>';
 
@@ -262,7 +262,7 @@ if (!wp_next_scheduled('write_cookie_usage_log_entries_hook')) {
 }
 
 // Function to register a submenu page for cookie usage reports
-function mn_register_cookie_reporting_page(){
+function mn_register_cookie_reporting_page() {
     add_submenu_page(
         'cookie-settings',
         esc_html__('Cookie Usage Reports', 'mn-wordpress-multisite-cookie-manager'),
@@ -313,3 +313,31 @@ function mn_import_cookie_settings($json_settings) {
     }
     return false;
 }
+
+// Function to inject custom CSS styling into the admin pages
+function mn_custom_plugin_styles() {
+    echo '
+        <style type="text/css">
+            .mn-debug-info {
+                background-color: #f4cccc;
+                border: 1px solid #c00;
+                border-radius: 3px;
+                padding: 10px;
+                margin-top: 20px;
+            }
+            .mn-debug-info p {
+                font-weight: bold;
+            }
+            .mn-import-export {
+                padding: 5px; 
+                background-color: #e2f3eb; 
+                border: 1px solid #b7e1cd; 
+                border-radius: 3px;
+            }
+            .mn-import-export .page-title-action {
+                margin: 5px 10px 0 10px;
+            }
+        </style>
+    ';
+}
+add_action('admin_head', 'mn_custom_plugin_styles');
