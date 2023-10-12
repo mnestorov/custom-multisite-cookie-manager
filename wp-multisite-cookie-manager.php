@@ -138,7 +138,7 @@ function mn_cookie_settings_page() {
     echo '<input type="submit" value="' . esc_attr__('Save Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button button-primary">';
     echo '<br class="clear">';
     echo '</div></div>';
-    echo '<div class="mn-debug-info"><p>DEBUG INFO</p><pre>' . print_r($custom_cookie_expirations, true) . '</pre></div>';
+    //echo '<div class="mn-debug-info"><p>DEBUG INFO</p><pre>' . print_r($custom_cookie_expirations, true) . '</pre></div>';
     echo '</form>';
     echo '</div>';
 
