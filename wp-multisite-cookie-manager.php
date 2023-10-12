@@ -115,9 +115,9 @@ function mn_cookie_settings_page() {
     wp_nonce_field('custom_cookie_nonce', 'custom_cookie_nonce');
     
     echo '<h1>' . esc_html__('Cookie Settings', 'mn-wordpress-multisite-cookie-manager') . '</h1>';
-    echo '<div">';
-	echo '<input type="submit" name="export_settings" value="' . esc_attr__('Export Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button button-primary mn-mr-5">';
-	echo '<input type="submit" name="import_settings" value="' . esc_attr__('Import Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button button-primary mn-mr-5">';
+    echo '<div>';
+	echo '<input type="submit" name="export_settings" value="' . esc_attr__('Export Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button button-primary" style="margin-right:5px;">';
+	echo '<input type="submit" name="import_settings" value="' . esc_attr__('Import Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button button-primary" style="margin-right:5px;">';
     echo '<input type="file" name="import_settings_file" accept=".json">';
 	echo '</div>';
 
@@ -493,9 +493,6 @@ function mn_custom_plugin_styles() {
             }
             .mn-debug-info p {
                 font-weight: bold;
-            }
-            .mn-mr-5 {
-                margin-right: 5px;
             }
         </style>
     ';
