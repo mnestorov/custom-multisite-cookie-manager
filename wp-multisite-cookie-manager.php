@@ -3,7 +3,7 @@
  * Plugin Name: MN - WordPress Multisite Cookie Manager
  * Plugin URI: https://github.com/mnestorov/wp-multisite-cookie-manager
  * Description: Manage cookies across a WordPress multisite network.
- * Version: 2.0.4
+ * Version: 2.1
  * Author: Martin Nestorov
  * Author URI: https://github.com/mnestorov
  * Text Domain: mn-wordpress-multisite-cookie-manager
@@ -350,6 +350,13 @@ function mn_cookie_reporting_page() {
 
     echo '<div class="wrap">';
     echo '<h1>Cookie Usage Reports</h1>';
+
+    // Form for clearing cookies
+    echo '<form method="post" style="margin-bottom: 20px;">';
+    wp_nonce_field('mn_clear_cookies_action', 'mn_clear_cookies_nonce');
+    echo '<input type="submit" name="mn_clear_cookies" value="Clear Cookies" class="button button-primary">';
+    echo '</form>';
+
     echo '<table class="wp-list-table widefat fixed striped">';
     echo '<thead><tr><th>Cookie Name</th><th>Country</th><th>Session ID</th><th>Number of Blogs</th><th>Timestamp</th></tr></thead>';
     echo '<tbody>';
@@ -438,6 +445,40 @@ function mn_get_geolocation_data() {
 
     return $geo_data;
 }
+
+// Function to clear the cookies from the database
+function mn_clear_cookies() {
+    global $wpdb;
+    $table_name = $wpdb->base_prefix . 'multisite_cookie_usage';
+
+    $unique_cookie_name = mn_get_unique_cookie_name();  // Get the unique cookie name
+
+    // Use the SQL DELETE statement to remove rows where the cookie_name matches the unique cookie name
+    $result = $wpdb->query($wpdb->prepare("DELETE FROM $table_name WHERE cookie_name = %s", $unique_cookie_name));
+
+    if (false === $result) {
+        // Handle error when query fails
+        mn_log_error('Failed to clear cookies: ' . $wpdb->last_error);
+    } else {
+        // Optionally, log the number of rows deleted
+        mn_log_error('Successfully cleared ' . $result . ' cookies');
+    }
+}
+
+// Function to check the nonce for security
+function mn_handle_clear_cookies_request() {
+    if (isset($_POST['mn_clear_cookies'])) {
+        // Check nonce for security
+        check_admin_referer('mn_clear_cookies_action', 'mn_clear_cookies_nonce');
+
+        // Call function to clear cookies
+        mn_clear_cookies();
+
+        // Optionally, redirect or display a success message
+        add_settings_error('mn_clear_cookies', 'mn_clear_cookies', 'Cookies cleared successfully.', 'updated');
+    }
+}
+add_action('admin_init', 'mn_handle_clear_cookies_request');
 
 // Function to inject custom CSS styling into the admin pages
 function mn_custom_plugin_styles() {

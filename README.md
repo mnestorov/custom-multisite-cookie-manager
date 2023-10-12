@@ -63,6 +63,10 @@ This plugin allows network administrators and site admins to manage cookie expir
 - Navigate to the "Cookie Usage Reports" submenu under "Cookie Settings".
 - View the table showing the usage of each cookie across the network.
 
+### Clear the Cookies from DB
+
+- When you visit "Cookie Usage Reports" admin page, you'll see a "Clear Cookies" button above the table. Pressing this button will clear the cookies with the unique cookie name from the database.
+
 ## Functions
 
 ### mn_get_unique_cookie_name()
