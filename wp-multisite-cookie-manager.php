@@ -20,7 +20,7 @@
  * Geolocation API key
  * Get the key from: https://app.ipgeolocation.io/
  */
-define('GEO_API_KEY', '24a6f2d5bd7e45759a759aaa668af953');
+define('GEO_API_KEY', 'YOUR_API_KEY');
 
 // Register the uninstall hook
 register_uninstall_hook(__FILE__, 'mn_custom_cookie_manager_uninstall');
