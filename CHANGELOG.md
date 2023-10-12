@@ -82,3 +82,6 @@
 - Provide a button on an plugin admin page that, when pressed, will clear the cookies with the unique cookie name from the database.
     - The `mn_handle_clear_cookies_request` function is hooked to the `admin_init` action, and checks if the "Clear Cookies" button was pressed.
     - If the button was pressed, it checks the nonce for security, calls the `mn_clear_cookies` function to clear cookies from the database, and displays a success message using `add_settings_error`.
+
+### 2.1.1
+- Minor button style changes on plugin admin, added additional info to README.md file.

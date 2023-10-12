@@ -75,7 +75,7 @@ Generates a unique cookie name based on the site name and blog ID.
 
 ### mn_log_error($message, $error_type = E_USER_NOTICE)
 
-Handles error logging based on the WP_DEBUG settings in the WordPress configuration.
+Handles error logging based on the `WP_DEBUG` settings in the WordPress configuration.
 
 ### mn_register_cookie_settings_page()
 
@@ -124,6 +124,14 @@ Imports cookie settings from a JSON file.
 ### mn_get_geolocation_data()
 
 Fetches the user's geo-location data using an external [API](https://app.ipgeolocation.io/).
+
+### mn_clear_cookies()
+
+Function to clear the cookies with the unique cookie name from the database.
+
+### mn_handle_clear_cookies_request()
+
+This function is triggered by the `admin_init` action. This function checks the nonce for security, calls `mn_clear_cookies()` to clear the cookies from the database, and displays a success message.
 
 ### mn_custom_plugin_styles()
 
