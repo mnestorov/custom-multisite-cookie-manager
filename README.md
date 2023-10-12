@@ -24,9 +24,9 @@ This plugin allows network administrators and site admins to manage cookie expir
 
 1. Download the plugin files to your computer.
 2. Using an FTP program, or your hosting control panel, upload the unzipped plugin folder to the `/wp-content/plugins/` directory of your WordPress multisite installation.
-3. Navigate to the **Network Admin -> Plugins** page within your WordPress multisite network.
-4. Locate **MN - WordPress Multisite Cookie Manager** in the list of available plugins and click **Network Activate**.
-5. Once activated, a new menu item "Cookie Settings" will appear in the network admin dashboard.
+3. Navigate to the Plugins page within your WordPress dashboard on the site where you want to manage cookies.
+4. Locate **MN - WordPress Multisite Cookie Manager** in the list of available plugins and click "Activate".
+5. Once activated, a new menu item "Cookie Settings" will appear in the admin dashboard of the site where you activated the plugin. Now you can manage cookie settings and view cookie usage reports from this menu.
 
 ## Usage
 
