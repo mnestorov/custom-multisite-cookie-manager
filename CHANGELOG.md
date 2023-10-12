@@ -85,3 +85,6 @@
 
 ### 2.1.1
 - Minor button style changes on plugin admin, added additional info to README.md file.
+
+### 2.1.2
+- Minor bug fixes on button styles.

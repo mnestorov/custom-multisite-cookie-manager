@@ -3,7 +3,7 @@
  * Plugin Name: MN - WordPress Multisite Cookie Manager
  * Plugin URI: https://github.com/mnestorov/wp-multisite-cookie-manager
  * Description: Manage cookies across a WordPress multisite network.
- * Version: 2.1.1
+ * Version: 2.1.2
  * Author: Martin Nestorov
  * Author URI: https://github.com/mnestorov
  * Text Domain: mn-wordpress-multisite-cookie-manager
@@ -115,9 +115,9 @@ function mn_cookie_settings_page() {
     wp_nonce_field('custom_cookie_nonce', 'custom_cookie_nonce');
     
     echo '<h1>' . esc_html__('Cookie Settings', 'mn-wordpress-multisite-cookie-manager') . '</h1>';
-    echo '<div class="mn-import-export">';
-	echo '<input type="submit" name="export_settings" value="' . esc_attr__('Export Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button button-primary">';
-	echo '<input type="submit" name="import_settings" value="' . esc_attr__('Import Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button button-primary">';
+    echo '<div">';
+	echo '<input type="submit" name="export_settings" value="' . esc_attr__('Export Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button button-primary mn-mr-5">';
+	echo '<input type="submit" name="import_settings" value="' . esc_attr__('Import Settings', 'mn-wordpress-multisite-cookie-manager') . '" class="button button-primary mn-mr-5">';
     echo '<input type="file" name="import_settings_file" accept=".json">';
 	echo '</div>';
 
@@ -493,6 +493,9 @@ function mn_custom_plugin_styles() {
             }
             .mn-debug-info p {
                 font-weight: bold;
+            }
+            .mn-mr-5 {
+                margin-right: 5px;
             }
         </style>
     ';
