@@ -88,3 +88,6 @@
 
 ### 2.1.2
 - Minor bug fixes on button styles.
+
+### 2.1.3 (2023.11.30)
+- License update.
